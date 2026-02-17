@@ -1,0 +1,18 @@
+{
+    "help": {
+      "patterns": ["помощ", "help"]
+    },
+    "exit": {
+      "patterns": ["изход", "exit", "quit"]
+    },
+    "add_club": {
+      "patterns": ["добави клуб (.+)"]
+    },
+    "list_clubs": {
+      "patterns": ["покажи всички клубове", "покажи клубове", "list"]
+    },
+    "delete_club": {
+      "patterns": ["изтрий клуб (.+)"]
+    }
+  }
+  
