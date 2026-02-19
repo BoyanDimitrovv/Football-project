@@ -1,11 +1,5 @@
 PRAGMA foreign_keys = ON;
 
-
--- =====================================
--- ТАБЛИЦИ
--- =====================================
-
-
 CREATE TABLE clubs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
@@ -90,13 +84,6 @@ CREATE TABLE cards (
     FOREIGN KEY (player_id) REFERENCES players(id)
 );
 
-
--- =====================================
--- ТЕСТОВИ ДАННИ
--- =====================================
-
-
--- КЛУБОВЕ
 INSERT INTO clubs (name, city, founded_year) VALUES
 ('Левски', 'София', 1914),
 ('Ботев', 'Пловдив', 1912),
@@ -105,7 +92,6 @@ INSERT INTO clubs (name, city, founded_year) VALUES
 ('Берое', 'Стара Загора', 1924);
 
 
--- ИГРАЧИ
 INSERT INTO players (name, birth_date, nationality, position, number, club_id) VALUES
 ('Иван Петров', '2000-05-12', 'България', 'FW', 9, 1),
 ('Георги Иванов', '1998-03-20', 'България', 'MF', 8, 1),
@@ -119,13 +105,10 @@ INSERT INTO players (name, birth_date, nationality, position, number, club_id) V
 ('Пламен Петров', '2000-04-17', 'България', 'MF', 6, 3);
 
 
--- ЛИГИ
 INSERT INTO leagues (name, season) VALUES
 ('Първа лига', '2025/2026'),
 ('Втора лига', '2025/2026');
 
-
--- ОТБОРИ В ЛИГА
 INSERT INTO league_teams (league_id, club_id) VALUES
 (1, 1),
 (1, 2),
@@ -133,15 +116,11 @@ INSERT INTO league_teams (league_id, club_id) VALUES
 (1, 4),
 (1, 5);
 
-
--- МАЧОВЕ
 INSERT INTO matches (league_id, home_team_id, away_team_id, match_date, home_goals, away_goals) VALUES
 (1, 1, 2, '2025-09-01', 3, 1),
 (1, 3, 5, '2025-09-02', 2, 2),
 (1, 4, 1, '2025-09-03', 1, 0);
 
-
--- ГОЛОВЕ
 INSERT INTO goals (match_id, player_id, minute) VALUES
 (1, 1, 23),
 (1, 1, 55),
@@ -154,7 +133,6 @@ INSERT INTO goals (match_id, player_id, minute) VALUES
 (3, 5, 20);
 
 
--- КАРТОНИ
 INSERT INTO cards (match_id, player_id, card_type, minute) VALUES
 (1, 3, 'yellow', 30),
 (1, 2, 'yellow', 70),
@@ -163,7 +141,6 @@ INSERT INTO cards (match_id, player_id, card_type, minute) VALUES
 (3, 1, 'yellow', 55);
 
 
--- ТРАНСФЕРИ
 INSERT INTO transfers (player_id, from_club_id, to_club_id, transfer_date, fee) VALUES
 (1, 1, 3, '2026-01-10', 500000),
 (6, 5, 2, '2026-02-01', 200000),
