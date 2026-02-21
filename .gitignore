@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+.venv
+
+# Database - ВАЖНО! Не качваме базата данни
+*.db
+*.sqlite
+*.sqlite3
+clubs.db
+
+# Logs - ВАЖНО! Не качваме логове
+*.log
+commands.log
+chatbot.log
+
+# IDE - вашите лични настройки
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS временни файлове
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python компилирани файлове
+__pycache__/
+*.pyc
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+
+# Проект специфични
+temp/
+test/
