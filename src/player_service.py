@@ -54,10 +54,10 @@ class PlayersService:
         return True, position
     
     @staticmethod
-    def add_player(club_name, full_name, birth_date, nationality, position, number):
-        """Добавя нов играч"""
+    def add_player_full(club_name, full_name, birth_date, nationality, position, number, status="active"):
+        """Добавя нов играч с всички параметри (за инициализация)"""
         try:
-            # 1. Намиране на клуб
+            # Намиране на клуб
             club = execute_query(
                 "SELECT id FROM clubs WHERE name = ?", 
                 (club_name,), 
@@ -67,33 +67,24 @@ class PlayersService:
             if not club:
                 return f"❌ Клуб '{club_name}' не съществува"
             
-            # 2. Валидации
-            if not full_name or not full_name.strip():
-                return "❌ Името на играча е задължително"
-            
-            if not PlayersService.validate_date(birth_date):
-                return "❌ Невалидна дата. Използвайте формат YYYY-MM-DD (пример: 1995-03-15)"
-            
-            # Валидация на номер
+            # Валидации
             valid_number, number_msg = PlayersService.validate_number(number, club['id'])
             if not valid_number:
                 return f"❌ {number_msg}"
             
-            # Валидация на позиция
             valid_pos, pos_msg = PlayersService.validate_position(position)
             if not valid_pos:
                 return f"❌ {pos_msg}"
             
-            # 3. Добавяне на играч
+            # Добавяне на играч
             execute_query(
                 """INSERT INTO players 
-                   (club_id, full_name, birth_date, nationality, position, number) 
-                   VALUES (?, ?, ?, ?, ?, ?)""",
-                (club['id'], full_name.strip(), birth_date, nationality.strip(), pos_msg, number_msg)
+                   (club_id, full_name, birth_date, nationality, position, number, status) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (club['id'], full_name.strip(), birth_date, nationality.strip(), pos_msg, number_msg, status)
             )
             
-            logging.info(f"Добавен играч: {full_name} в {club_name}")
-            return f"✅ Добавен играч: {full_name} (№{number_msg}, {pos_msg}) в {club_name}"
+            return f"✅ Добавен играч: {full_name} в {club_name}"
             
         except Exception as e:
             logging.error(f"Грешка при добавяне на играч: {e}")
@@ -292,3 +283,4 @@ class PlayersService:
         except Exception as e:
             logging.error(f"Грешка при изтриване на играч: {e}")
             return f"❌ Грешка: {str(e)}"
+            
