@@ -13,39 +13,58 @@ env/
 ENV/
 .env
 .venv
+virtualenv/
 
-# Database - ВАЖНО! Не качваме базата данни
+# Database - НЕ КАЧВАМЕ БАЗАТА ДАННИ
 *.db
 *.sqlite
 *.sqlite3
 clubs.db
+football.db
+data.db
 
-# Logs - ВАЖНО! Не качваме логове
+# Logs - НЕ КАЧВАМЕ ЛОГОВЕ
 *.log
 commands.log
 chatbot.log
+error.log
 
-# IDE - вашите лични настройки
+# IDE - ЛИЧНИ НАСТРОЙКИ
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.settings/
 
-# OS временни файлове
+# OS - ВРЕМЕННИ ФАЙЛОВЕ
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Python компилирани файлове
-__pycache__/
-*.pyc
-
-# Temporary files
 *.tmp
 *.bak
 *.cache
 
-# Проект специфични
+# Python компилирани
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Тестови файлове (опционално)
+test.py
+test_*.py
 temp/
-test/
+tmp/
+temp_data.py
+
+# Документация (ако не искате)
+docs/
+__pycache__/
+
+# Проект специфични
+*.conf
+config.local.py
+.secrets/
