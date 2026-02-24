@@ -80,4 +80,81 @@ class ChatBot:
         elif intent == "unknown":
             return "❓ Не разбирам командата. Напишете 'помощ' за списък с команди."
         
+        # Новите команди за играчи
+        elif intent == "add_player" and len(params) >= 4:
+            # Парсване на параметрите
+            text = user_input.lower()
+            # Пример: "добави играч Меси в Барселона позиция FW номер 10"
+            match = re.search(r'добави играч (.+?) в (.+?) позиция (.+?) номер (\d+)', user_input.lower())
+            if match:
+                player_name = match.group(1).strip()
+                club_name = match.group(2).strip()
+                position = match.group(3).strip().upper()
+                number = match.group(4).strip()
+                
+                # За демо, слагаме тестови данни
+                from players_service import PlayersService
+                return PlayersService.add_player(
+                    club_name, 
+                    player_name, 
+                    "1995-03-15",  # Примерна дата
+                    "България",     # Примерна националност
+                    position, 
+                    number
+                )
+            return "❌ Неправилен формат. Използвайте: добави играч [ИМЕ] в [КЛУБ] позиция [GK/DF/MF/FW] номер [1-99]"
+        
+        elif intent == "list_players" and params:
+            club_name = params[0].strip()
+            from players_service import PlayersService
+            players, club = PlayersService.get_players_by_club(club_name)
+            
+            if players is None:
+                return club  # това е съобщението за грешка
+            
+            if not players:
+                return f"📋 Няма играчи в {club}"
+            
+            response = f"📋 Играчи на {club}:\n"
+            position_emoji = {'GK': '🧤', 'DF': '🛡️', 'MF': '⚙️', 'FW': '⚽'}
+            status_emoji = {'active': '✅', 'injured': '🤕', 'suspended': '⛔'}
+            
+            for p in players:
+                response += f"  {position_emoji[p['position']]} {p['number']}. {p['full_name']} "
+                response += f"({p['nationality']}) {status_emoji[p['status']]}\n"
+            return response
+        
+        elif intent == "change_number" and len(params) >= 2:
+            # Пример: "смени номер на Меси на 10" или "смени номер на Меси в Барселона на 10"
+            text = user_input.lower()
+            match = re.search(r'смени номер на (.+?)(?: в (.+?))? на (\d+)', user_input.lower())
+            if match:
+                player_name = match.group(1).strip()
+                club_name = match.group(2).strip() if match.group(2) else None
+                new_number = match.group(3).strip()
+                
+                from players_service import PlayersService
+                return PlayersService.update_player_number(player_name, new_number, club_name)
+            
+        elif intent == "change_status" and len(params) >= 2:
+            # Пример: "смени статус на Меси на injured"
+            match = re.search(r'смени статус на (.+?)(?: в (.+?))? на (.+)', user_input.lower())
+            if match:
+                player_name = match.group(1).strip()
+                club_name = match.group(2).strip() if match.group(2) else None
+                new_status = match.group(3).strip().lower()
+                
+                from players_service import PlayersService
+                return PlayersService.update_player_status(player_name, new_status, club_name)
+        
+        elif intent == "delete_player" and params:
+            # Пример: "изтрий играч Меси" или "изтрий играч Меси от Барселона"
+            text = user_input.lower()
+            match = re.search(r'изтрий играч (.+?)(?: от (.+))?$', user_input.lower())
+            if match:
+                player_name = match.group(1).strip()
+                club_name = match.group(2).strip() if match.group(2) else None
+                
+                from players_service import PlayersService
+                return PlayersService.delete_player(player_name, club_name)
         return base_response
