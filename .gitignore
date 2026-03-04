@@ -15,7 +15,7 @@ ENV/
 .venv
 virtualenv/
 
-# Database - НЕ КАЧВАМЕ БАЗАТА ДАННИ
+# Database
 *.db
 *.sqlite
 *.sqlite3
@@ -23,7 +23,7 @@ clubs.db
 football.db
 data.db
 
-# Logs - НЕ КАЧВАМЕ ЛОГОВЕ
+# Logs
 *.log
 commands.log
 chatbot.log
@@ -53,14 +53,14 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Тестови файлове (опционално)
+# Тестови файлове
 test.py
 test_*.py
 temp/
 tmp/
 temp_data.py
 
-# Документация (ако не искате)
+# Документация
 docs/
 __pycache__/
 
