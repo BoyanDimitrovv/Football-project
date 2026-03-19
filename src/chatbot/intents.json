@@ -2,53 +2,43 @@
     "intents": [
         {
             "tag": "help",
-            "patterns": ["помощ", "помогни", "help", "команди"],
-            "responses": ["📋 ** НАЛИЧНИ КОМАНДИ **\n\n🏆 КЛУБОВЕ:\n• добави клуб [име]\n• покажи клубове\n• изтрий клуб [име/id]\n\n⚽ ИГРАЧИ:\n• добави играч [ИМЕ] в [КЛУБ] позиция [GK/DF/MF/FW] номер [1-99]\n• покажи играчи на [КЛУБ]\n• смени номер на [ИГРАЧ] на [НОМЕР]\n• смени статус на [ИГРАЧ] на [active/injured/suspended]\n• изтрий играч [ИМЕ]"]
+            "patterns": ["помощ", "help", "команди"],
+            "responses": [""]
         },
         {
             "tag": "exit",
-            "patterns": ["изход", "край", "exit", "quit", "чао"],
+            "patterns": ["изход", "exit", "край", "quit"],
             "responses": ["Довиждане! 👋"]
         },
         {
             "tag": "add_club",
-            "patterns": ["добави клуб (.+)", "нов клуб (.+)"],
-            "responses": ["Опит за добавяне на клуб..."]
+            "patterns": ["добави клуб (.+)"],
+            "responses": [""]
         },
         {
             "tag": "list_clubs",
             "patterns": ["покажи клубове", "клубове", "всички клубове"],
-            "responses": ["🏆 Списък с клубове:"]
-        },
-        {
-            "tag": "delete_club",
-            "patterns": ["изтрий клуб (.+)"],
-            "responses": ["Опит за изтриване на клуб..."]
-        },
-        {
-            "tag": "add_player",
-            "patterns": ["добави играч (.+)"],
-            "responses": ["Опит за добавяне на играч..."]
+            "responses": [""]
         },
         {
             "tag": "list_players",
             "patterns": ["покажи играчи на (.+)"],
-            "responses": ["📋 Списък с играчи:"]
+            "responses": [""]
         },
         {
-            "tag": "change_number",
-            "patterns": ["смени номер на (.+)"],
-            "responses": ["Опит за смяна на номер..."]
+            "tag": "transfer_player",
+            "patterns": ["трансфер (.+)"],
+            "responses": [""]
         },
         {
-            "tag": "change_status",
-            "patterns": ["смени статус на (.+)"],
-            "responses": ["Опит за промяна на статус..."]
+            "tag": "show_transfers_player",
+            "patterns": ["покажи трансфери на (.+)"],
+            "responses": [""]
         },
         {
-            "tag": "delete_player",
-            "patterns": ["изтрий играч (.+)"],
-            "responses": ["Опит за изтриване на играч..."]
+            "tag": "show_transfers_club",
+            "patterns": ["покажи трансфери на клуб (.+)"],
+            "responses": [""]
         }
     ]
 }
