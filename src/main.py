@@ -1,69 +1,59 @@
-import logging
-import datetime
+import sys
 from pathlib import Path
-from db import init_database
-from chatbot import ChatBot
 
-# Конфигурация на logging
-LOG_FILE = Path(__file__).parent.parent / "commands.log"
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(LOG_FILE, encoding='utf-8'),
-        logging.StreamHandler()
-    ]
-)
+sys.path.append(str(Path(__file__).parent.parent))
+
+from src.database.db import init_database
+from src.chatbot.nlu import NLU
+from src.chatbot.router import Router
 
 def main():
-    """Основна функция за стартиране на чатбота"""
-    
-    print("=" * 50)
-    print("🏆 Чатбот за управление на клубове 🏆")
-    print("=" * 50)
+    print("=" * 60)
+    print("🏆 ЧАТБОТ ЗА УПРАВЛЕНИЕ НА ТРАНСФЕРИ 🏆")
+    print("=" * 60)
     print("Въведете 'помощ' за списък с команди")
     print("Въведете 'изход' за край на програмата")
-    print("-" * 50)
+    print("-" * 60)
     
     try:
-        # Инициализиране на базата данни
+        # Инициализиране на базата
         init_database()
-        logging.info("Базата данни е инициализирана")
         
-        # Създаване на чатбот
-        chatbot = ChatBot()
+        # Създаване на компоненти
+        nlu = NLU()
+        router = Router()
         
         # Главен цикъл
         while True:
             try:
-                # Вход от потребителя
                 user_input = input("\n👤 Вие: ").strip()
                 
                 if not user_input:
                     continue
                 
-                # Обработка на командата
-                response = chatbot.process_command(user_input)
+                # Разпознаване на intent
+                parse_result = nlu.parse(user_input)
                 
-                # Логване на командата
-                logging.info(f"COMMAND: '{user_input}' -> RESPONSE: '{response[:50]}...'")
+                # Изпълнение на командата
+                response = router.route(
+                    parse_result['intent'], 
+                    parse_result['params'], 
+                    user_input
+                )
                 
                 # Показване на отговора
                 print(f"🤖 Бот: {response}")
                 
-                # Проверка за изход
-                if user_input.lower() in ['изход', 'exit', 'quit', 'край']:
+                if parse_result['intent'] == 'exit':
                     break
                     
             except KeyboardInterrupt:
                 print("\n🤖 Бот: Довиждане! 👋")
                 break
             except Exception as e:
-                logging.error(f"Грешка при обработка: {e}")
                 print(f"🤖 Бот: ❗ Възникна грешка: {e}")
     
     except Exception as e:
-        logging.error(f"Грешка при стартиране: {e}")
         print(f"❌ Грешка при стартиране: {e}")
 
 if __name__ == "__main__":
