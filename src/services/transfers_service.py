@@ -1,7 +1,3 @@
-"""
-TRANSFERS SERVICE - ЕТАП 4
-Бизнес логика за трансфери с атомични транзакции
-"""
 
 from src.database.db import execute_query, execute_transaction
 from src.utils.logger import log_error
