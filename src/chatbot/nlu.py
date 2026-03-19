@@ -1,3 +1,4 @@
+
 import re
 
 class NLU:
@@ -24,8 +25,6 @@ class NLU:
             return {'intent': 'exit', 'params': {}}
         
         # ----- 🔄 ТРАНСФЕР (с опционална сума) -----
-        # Формат 1: трансфер ИМЕ от КЛУБ в КЛУБ ДАТА
-        # Формат 2: трансфер ИМЕ от КЛУБ в КЛУБ ДАТА сума ЧИСЛО
         transfer_patterns = [
             r'трансфер (.+?) от (.+?) в (.+?) (\d{4}-\d{2}-\d{2}) сума (\d+(?:\.\d+)?)',
             r'трансфер (.+?) от (.+?) в (.+?) (\d{4}-\d{2}-\d{2})'
@@ -41,14 +40,12 @@ class NLU:
                     'to_club': groups[2].strip(),
                     'date': groups[3].strip()
                 }
-                # Ако има сума (група 5)
                 if len(groups) > 4 and groups[4]:
                     params['fee'] = groups[4].strip()
                 
                 return {'intent': 'transfer_player', 'params': params}
         
         # ----- 🔄 ПОКАЖИ ТРАНСФЕРИ НА ИГРАЧ -----
-        # Формат: покажи трансфери на ИМЕ
         player_match = re.search(r'покажи трансфери на (.+)', text_lower)
         if player_match and 'клуб' not in text_lower:
             return {
@@ -57,7 +54,6 @@ class NLU:
             }
         
         # ----- 🔄 ПОКАЖИ ТРАНСФЕРИ НА КЛУБ -----
-        # Формат: покажи трансфери на клуб ИМЕ
         club_match = re.search(r'покажи трансфери на клуб (.+)', text_lower)
         if club_match:
             return {
@@ -66,7 +62,6 @@ class NLU:
             }
         
         # ----- ⚽ ПОКАЖИ ИГРАЧИ НА КЛУБ (от Етап 3) -----
-        # Формат: покажи играчи на КЛУБ
         players_match = re.search(r'покажи играчи на (.+)', text_lower)
         if players_match:
             return {
@@ -79,7 +74,6 @@ class NLU:
             return {'intent': 'list_clubs', 'params': {}}
         
         # ----- 🏆 ДОБАВИ КЛУБ (от Етап 2) -----
-        # Формат: добави клуб ИМЕ
         add_club_match = re.search(r'добави клуб (.+)', text_lower)
         if add_club_match:
             return {
@@ -89,8 +83,3 @@ class NLU:
         
         # ----- ❓ НЕПОЗНАТА КОМАНДА -----
         return {'intent': 'unknown', 'params': {}}
-    
-    def _extract_transfer_params(self, text):
-        """Помощен метод за извличане на параметри за трансфер"""
-        # Може да добавите допълнителна логика тук
-        pass
