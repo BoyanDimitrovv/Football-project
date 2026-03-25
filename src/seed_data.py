@@ -1,7 +1,3 @@
-"""
-SEED DATA - ЕТАП 4
-Добавя тестови клубове, играчи и трансфери
-"""
 
 from src.database.db import init_database, execute_query
 from src.services.clubs_service import ClubsService
@@ -9,13 +5,7 @@ from src.services.players_service import PlayersService
 from src.services.transfers_service import TransfersService
 
 def seed_data():
-    """
-    Добавя тестови данни за Етап 4:
-    - минимум 4 клуба ✓
-    - минимум 6 играчи ✓ (7 играчи)
-    - минимум 5 трансфера ✓ (7 трансфера)
-    """
-    
+
     print("📦 Добавяне на тестови данни за Етап 4...")
     
     # Изчистване на старата база
