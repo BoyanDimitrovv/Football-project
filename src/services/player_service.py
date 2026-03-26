@@ -2,7 +2,7 @@
 import logging
 import re
 from datetime import datetime
-from db import execute_query
+from database.db import execute_query 
 
 class PlayersService:
     
