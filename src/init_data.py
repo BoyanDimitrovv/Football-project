@@ -1,10 +1,10 @@
 # src/init_data.py
-from clubs_service import ClubsService
-from players_service import PlayersService
+from services.club_service import ClubsService  
+from services.player_service import PlayersService
 import logging
 
 def init_sample_data():
-    """Добавя примерни клубове и играчи в базата данни"""
+    """Добавя примерни клубове и играчи в базата данни"""   
     
     print("📦 Добавяне на примерни данни...")
     
