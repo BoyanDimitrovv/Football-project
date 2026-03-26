@@ -1,8 +1,7 @@
-
-from src.services.clubs_service import ClubsService
-from src.services.players_service import PlayersService
-from src.services.transfers_service import TransfersService
-from src.utils.logger import log_command
+from services.club_service import ClubsService
+from services.player_service import PlayersService
+from services.transfers_service import TransfersService
+from utils.logger import log_command
 
 class Router:
     """Клас, който насочва командите към правилния service"""
@@ -38,7 +37,7 @@ class Router:
             elif intent == 'exit':
                 result = "Довиждане! 👋"
             
-            # ----- КЛУБОВЕ (от Етап 2) -----
+            # ----- КЛУБОВЕ -----
             elif intent == 'add_club':
                 club_name = params.get('club', '')
                 result = self.clubs_service.add_club(club_name)
@@ -53,27 +52,37 @@ class Router:
                         response += f"  🏆 {club['id']}. {club['name']}\n"
                     result = response
             
-            # ----- ИГРАЧИ (от Етап 3) -----
+            # ----- ИГРАЧИ -----
             elif intent == 'list_players':
-                club_name = params.get('club', '')
-                players, club = self.players_service.get_players_by_club(club_name)
+                club_input = params.get('club', '').replace('клуб ', '').strip()
                 
-                if players is None:
-                    result = club
-                elif not players:
-                    result = f"📋 Няма играчи в {club}"
+                # Проверка за точен клуб без значение главни/малки букви
+                all_clubs = self.clubs_service.get_all_clubs()
+                club_name = None
+                for c in all_clubs:
+                    if c['name'].lower() == club_input.lower():
+                        club_name = c['name']
+                        break
+                
+                if club_name is None:
+                    result = f"❌ Клуб '{club_input}' не съществува"
                 else:
-                    response = f"📋 Играчи на {club}:\n"
-                    emoji = {'GK': '🧤', 'DF': '🛡️', 'MF': '⚙️', 'FW': '⚽'}
-                    status_emoji = {'active': '✅', 'injured': '🤕', 'suspended': '⛔'}
-                    
-                    for player in players:
-                        response += (f"  {emoji[player['position']]} {player['number']}. "
-                                   f"{player['full_name']} ({player['nationality']}) "
-                                   f"{status_emoji[player['status']]}\n")
-                    result = response
+                    players, club = self.players_service.get_players_by_club(club_name)
+                    if not players:
+                        result = f"📋 Няма играчи в {club}"
+                    else:
+                        response = f"📋 Играчи на {club}:\n"
+                        emoji = {'GK': '🧤', 'DF': '🛡️', 'MF': '⚙️', 'FW': '⚽'}
+                        status_emoji = {'active': '✅', 'injured': '🤕', 'suspended': '⛔'}
+                        # премахване на дублирани играчи
+                        unique_players = {p['id']: p for p in players}.values()
+                        for player in unique_players:
+                            response += (f"  {emoji.get(player['position'], '⚽')} {player['number']}. "
+                                         f"{player['full_name']} ({player['nationality']}) "
+                                         f"{status_emoji.get(player['status'], '❓')}\n")
+                        result = response
             
-            # ----- 🔄 ТРАНСФЕРИ (НОВО за Етап 4) -----
+            # ----- ТРАНСФЕРИ -----
             elif intent == 'transfer_player':
                 result = self.transfers_service.transfer_player(
                     player_name=params.get('player', ''),
