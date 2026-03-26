@@ -1,8 +1,7 @@
-
-from src.database.db import init_database, execute_query
-from src.services.clubs_service import ClubsService
-from src.services.players_service import PlayersService
-from src.services.transfers_service import TransfersService
+from database.db import init_database, execute_query
+from services.club_service import ClubsService
+from services.player_service import PlayersService 
+from services.transfers_service import TransfersService
 
 def seed_data():
 
