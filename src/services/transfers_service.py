@@ -1,8 +1,8 @@
 
-from src.database.db import execute_query, execute_transaction
-from src.utils.logger import log_error
-from src.services.players_service import PlayersService
-from src.services.clubs_service import ClubsService
+from database.db import execute_query, execute_transaction
+from utils.logger import log_error
+from services.player_service import PlayersService
+from services.club_service import ClubsService
 from datetime import datetime
 
 class TransfersService:
