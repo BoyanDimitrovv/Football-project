@@ -144,15 +144,7 @@ def get_table_info(table_name):
         return []
 
 def table_exists(table_name):
-    """
-    Проверява дали дадена таблица съществува
-    
-    Args:
-        table_name (str): Име на таблицата
-    
-    Returns:
-        bool: True ако таблицата съществува
-    """
+
     try:
         result = execute_query(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
