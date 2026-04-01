@@ -1,124 +1,91 @@
+"""
+CLUBS SERVICE - ЕТАП 2 (актуализиран за Етап 4)
+"""
+
 import logging
-from database.db import execute_query 
+import sqlite3
+from pathlib import Path
+
+# Път до базата данни
+DB_PATH = Path(__file__).parent.parent.parent / "clubs.db"
+
+
+def execute_query(query, params=(), fetch_one=False, fetch_all=False):
+    """Изпълнява заявка към базата"""
+    conn = None
+    try:
+        conn = sqlite3.connect(str(DB_PATH))
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+
+        if query.strip().upper().startswith(('INSERT', 'UPDATE', 'DELETE')):
+            conn.commit()
+            return cursor.lastrowid
+
+        if fetch_one:
+            return cursor.fetchone()
+        if fetch_all:
+            return cursor.fetchall()
+
+        return cursor.fetchall()
+
+    except Exception as e:
+        logging.error(f"Грешка: {e}")
+        raise
+    finally:
+        if conn:
+            conn.close()
+
 
 class ClubsService:
-    
-    @staticmethod
-    def validate_name(name):
-        """Валидира име на клуб"""
-        if not name or not name.strip():
-            raise ValueError("Името на клуба не може да бъде празно")
-        return name.strip()
-    
+
     @staticmethod
     def add_club(name):
         """Добавя нов клуб"""
+        if not name or not name.strip():
+            return "❌ Името на клуба не може да бъде празно"
+
         try:
-            name = ClubsService.validate_name(name)
-            
-            # Проверка за дублиране
+            name = name.strip()
+
             existing = execute_query(
-                "SELECT id FROM clubs WHERE name = ?", 
-                (name,), 
+                "SELECT id FROM clubs WHERE name = ?",
+                (name,),
                 fetch_one=True
             )
-            
+
             if existing:
                 return f"❌ Клуб '{name}' вече съществува"
-            
-            # Добавяне на клуб
-            execute_query(
-                "INSERT INTO clubs (name) VALUES (?)", 
-                (name,)
-            )
-            
-            logging.info(f"Добавен клуб: {name}")
+
+            execute_query("INSERT INTO clubs (name) VALUES (?)", (name,))
             return f"✅ Успешно добавен клуб: {name}"
-            
+
         except Exception as e:
             logging.error(f"Грешка при добавяне на клуб: {e}")
             return f"❌ Грешка: {str(e)}"
-    
+
     @staticmethod
     def get_all_clubs():
         """Връща всички клубове"""
         try:
-            clubs = execute_query(
-                "SELECT * FROM clubs ORDER BY name", 
+            return execute_query(
+                "SELECT * FROM clubs ORDER BY name",
                 fetch_all=True
             )
-            return clubs
         except Exception as e:
             logging.error(f"Грешка при вземане на клубове: {e}")
             return []
-    
+
     @staticmethod
-    def delete_club(identifier):
-        """Изтрива клуб по име или ID"""
-        try:
-            # Проверка дали е ID или име
-            if str(identifier).isdigit():
-                # Търсене по ID
-                club = execute_query(
-                    "SELECT * FROM clubs WHERE id = ?", 
-                    (identifier,), 
-                    fetch_one=True
-                )
-                if club:
-                    execute_query("DELETE FROM clubs WHERE id = ?", (identifier,))
-                    return f"✅ Изтрит клуб с ID {identifier}: {club['name']}"
-            else:
-                # Търсене по име
-                name = identifier.strip()
-                club = execute_query(
-                    "SELECT * FROM clubs WHERE name = ?", 
-                    (name,), 
-                    fetch_one=True
-                )
-                if club:
-                    execute_query("DELETE FROM clubs WHERE name = ?", (name,))
-                    return f"✅ Изтрит клуб: {name}"
-            
-            return f"❌ Клуб '{identifier}' не е намерен"
-            
-        except Exception as e:
-            logging.error(f"Грешка при изтриване на клуб: {e}")
-            return f"❌ Грешка: {str(e)}"
-    
-    @staticmethod
-    def update_club(old_name, new_name):
-        """Обновява име на клуб (по желание)"""
-        try:
-            new_name = ClubsService.validate_name(new_name)
-            
-            # Проверка дали клубът съществува
-            club = execute_query(
-                "SELECT * FROM clubs WHERE name = ?", 
-                (old_name,), 
-                fetch_one=True
-            )
-            
-            if not club:
-                return f"❌ Клуб '{old_name}' не е намерен"
-            
-            # Проверка за дублиране на новото име
-            existing = execute_query(
-                "SELECT id FROM clubs WHERE name = ?", 
-                (new_name,), 
-                fetch_one=True
-            )
-            
-            if existing:
-                return f"❌ Клуб '{new_name}' вече съществува"
-            
-            # Обновяване
-            execute_query(
-                "UPDATE clubs SET name = ? WHERE name = ?", 
-                (new_name, old_name)
-            )
-            
-            return f"✅ Клубът '{old_name}' е преименуван на '{new_name}'"
-            
-        except Exception as e:
-            logging.error(f"Грешка при обновяване на клуб: {e}")
-            return f"❌ Грешка: {str(e)}"
+    def find_club_by_name(club_name):
+        """Намира клуб по име (за трансфери)"""
+        if not club_name or club_name.lower() in ['няма', 'свободен', 'без клуб']:
+            return None
+
+        club = execute_query(
+            "SELECT * FROM clubs WHERE name LIKE ?",
+            (f"%{club_name}%",),
+            fetch_one=True
+        )
+        return club
