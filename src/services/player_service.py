@@ -2,7 +2,7 @@
 import logging
 import re
 from datetime import datetime
-from database.db import execute_query 
+from database.db import execute_query
 
 class PlayersService:
     
@@ -54,7 +54,7 @@ class PlayersService:
         return True, position
     
     @staticmethod
-    def add_player_full(club_name, full_name, birth_date, nationality, position, number, status="active"):
+    def add_player(club_name, full_name, birth_date, nationality, position, number, status="active"):
         """Добавя нов играч с всички параметри (за инициализация)"""
         try:
             # Намиране на клуб
@@ -89,7 +89,27 @@ class PlayersService:
         except Exception as e:
             logging.error(f"Грешка при добавяне на играч: {e}")
             return f"❌ Грешка: {str(e)}"
-    
+    @staticmethod
+    def find_player_by_name(player_name):
+        """Намира играч по име (за трансфери)"""
+        return execute_query(
+            """SELECT p.*, c.name as club_name 
+               FROM players p 
+               LEFT JOIN clubs c ON p.club_id = c.id 
+               WHERE p.full_name LIKE ?""",
+            (f"%{player_name}%",),
+            fetch_one=True
+        )
+    @staticmethod
+    def find_club_by_name(club_name):
+        """Намира клуб по име (за трансфери)"""
+        if not club_name or club_name.lower() in ['няма', 'свободен', 'без клуб']:
+            return None
+        return execute_query(
+            "SELECT * FROM clubs WHERE name LIKE ?",
+            (f"%{club_name}%",),
+            fetch_one=True
+        )
     @staticmethod
     def get_players_by_club(club_name):
         """Връща всички играчи в даден клуб"""
