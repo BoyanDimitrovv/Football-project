@@ -3,7 +3,6 @@ import logging
 import re
 from datetime import datetime
 from database.db import execute_query
-
 class PlayersService:
     
     # Валидни позиции
@@ -110,20 +109,18 @@ class PlayersService:
             (f"%{club_name}%",),
             fetch_one=True
         )
+
     @staticmethod
     def get_players_by_club(club_name):
         """Връща всички играчи в даден клуб"""
         try:
-            # Намиране на клуб
-            club = execute_query(
-                "SELECT id, name FROM clubs WHERE name = ?", 
-                (club_name,), 
-                fetch_one=True
-            )
-            
+            # Използваме ClubsService за търсене на клуб (с малки/главни букви)
+            from club_service import ClubsService
+            club = ClubsService.find_club_by_name(club_name)
+
             if not club:
                 return None, f"❌ Клуб '{club_name}' не съществува"
-            
+
             # Вземане на играчите
             players = execute_query(
                 """SELECT * FROM players 
@@ -139,9 +136,9 @@ class PlayersService:
                 (club['id'],),
                 fetch_all=True
             )
-            
+
             return players, club['name']
-            
+
         except Exception as e:
             logging.error(f"Грешка при вземане на играчи: {e}")
             return [], None
