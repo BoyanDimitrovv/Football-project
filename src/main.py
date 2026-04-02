@@ -1,6 +1,3 @@
-"""
-MAIN - ЕТАП 4
-"""
 
 import sys
 from pathlib import Path
