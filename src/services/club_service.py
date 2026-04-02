@@ -1,6 +1,3 @@
-"""
-CLUBS SERVICE - ЕТАП 2 (актуализиран за Етап 4)
-"""
 
 import logging
 import sqlite3
@@ -39,7 +36,36 @@ def execute_query(query, params=(), fetch_one=False, fetch_all=False):
 
 
 class ClubsService:
+    @staticmethod
+    def find_club_by_name(club_name):
+        """Намира клуб по име (без значение на малки/главни букви)"""
+        if not club_name:
+            return None
 
+        # Първо търсим точно съвпадение
+        club = execute_query(
+            "SELECT * FROM clubs WHERE name = ?",
+            (club_name,),
+            fetch_one=True
+        )
+
+        # Ако не намери, търсим без значение на малки/главни
+        if not club:
+            club = execute_query(
+                "SELECT * FROM clubs WHERE LOWER(name) = LOWER(?)",
+                (club_name,),
+                fetch_one=True
+            )
+
+        # Ако пак не намери, търсим с LIKE
+        if not club:
+            club = execute_query(
+                "SELECT * FROM clubs WHERE LOWER(name) LIKE LOWER(?)",
+                (f"%{club_name}%",),
+                fetch_one=True
+            )
+
+        return club
     @staticmethod
     def add_club(name):
         """Добавя нов клуб"""
