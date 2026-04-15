@@ -174,7 +174,91 @@ class NLU:
                     'season': show_fixture_match.group(2).strip()
                 }
             }
+        # ============================================================
+        # ЕТАП 6 - МАЧОВЕ
+        # ============================================================
 
+        # Покажи кръг
+        show_round_match = re.search(r'покажи кръг (\d+) (.+?) (\d{4}/\d{4})', text_lower)
+        if show_round_match:
+            return {
+                'intent': 'show_round',
+                'params': {
+                    'round_no': show_round_match.group(1).strip(),
+                    'league_name': show_round_match.group(2).strip(),
+                    'season': show_round_match.group(3).strip()
+                }
+            }
+
+        # Избери мач
+        select_match = re.search(r'избери мач (\d+)', text_lower)
+        if select_match:
+            return {
+                'intent': 'select_match',
+                'params': {'match_id': select_match.group(1).strip()}
+            }
+
+        # Резултат (с контекст)
+        result_match = re.search(r'резултат (.+?)-(.+?) (\d+):(\d+) запиши', text_lower)
+        if result_match:
+            return {
+                'intent': 'set_result',
+                'params': {
+                    'home_team': result_match.group(1).strip(),
+                    'away_team': result_match.group(2).strip(),
+                    'home_goals': result_match.group(3).strip(),
+                    'away_goals': result_match.group(4).strip()
+                }
+            }
+
+        # Гол
+        goal_match = re.search(r'гол (.+) за (.+) в (\d+) минута', text_lower)
+        if goal_match:
+            return {
+                'intent': 'add_goal',
+                'params': {
+                    'player': goal_match.group(1).strip(),
+                    'club': goal_match.group(2).strip(),
+                    'minute': goal_match.group(3).strip()
+                }
+            }
+
+        # Картон - формат: картон [ИГРАЧ] за [КЛУБ] [Y/R] в [МИНУТА]
+        card_match = re.search(r'картон (.+?) за (.+?) ([YR]) в (\d+)', text_lower)
+        if card_match:
+            return {
+                'intent': 'add_card',
+                'params': {
+                    'player': card_match.group(1).strip(),
+                    'club': card_match.group(2).strip(),
+                    'card_type': card_match.group(3).strip(),
+                    'minute': card_match.group(4).strip()
+                }
+            }
+
+        # Картон - алтернативен формат: картон [ИГРАЧ] [КЛУБ] [Y/R] [МИНУТА]
+        card_match2 = re.search(r'картон (.+?) (.+?) ([YR]) (\d+)', text_lower)
+        if card_match2:
+            return {
+                'intent': 'add_card',
+                'params': {
+                    'player': card_match2.group(1).strip(),
+                    'club': card_match2.group(2).strip(),
+                    'card_type': card_match2.group(3).strip(),
+                    'minute': card_match2.group(4).strip()
+                }
+            }
+
+        # Покажи събития
+        if 'покажи събития' in text_lower:
+            # Проверка дали има ID
+            show_events_match = re.search(r'покажи събития (\d+)', text_lower)
+            if show_events_match:
+                return {
+                    'intent': 'show_events',
+                    'params': {'match_id': show_events_match.group(1).strip()}
+                }
+            return {'intent': 'show_events', 'params': {}}
         # ============================================================
         # НЕПОЗНАТА КОМАНДА
         # ============================================================
