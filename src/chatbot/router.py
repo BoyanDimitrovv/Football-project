@@ -1,7 +1,8 @@
-from services.club_service import ClubsService
-from services.player_service import PlayersService
+from services.clubs_service import ClubsService
+from services.players_service import PlayersService
 from services.transfers_service import TransfersService
 from services.leagues_service import LeaguesService
+from services.matches_service import MatchesService
 from utils.logger import log_command
 
 
@@ -13,7 +14,8 @@ class Router:
         self.clubs_service = ClubsService()
         self.players_service = PlayersService()
         self.transfers_service = TransfersService()
-        self.leagues_service = LeaguesService()  # НОВО за Етап 5
+        self.leagues_service = LeaguesService()
+        self.matches_service = MatchesService()
 
     def route(self, intent, params, raw_input):
         """
@@ -145,7 +147,58 @@ class Router:
                     league_name=params.get('league_name', ''),
                     season=params.get('season', '')
                 )
+            # ============================================================
+            # ЕТАП 6 - МАЧОВЕ
+            # ============================================================
 
+            elif intent == 'show_round':
+                result = self.matches_service.show_round(
+                    round_no=int(params.get('round_no', 0)),
+                    league_name=params.get('league_name', ''),
+                    season=params.get('season', '')
+                )
+
+            elif intent == 'select_match':
+                valid, msg = self.matches_service.set_current_match(
+                    match_id=int(params.get('match_id', 0))
+                )
+                result = msg
+
+            elif intent == 'set_result':
+                result = self.matches_service.set_result(
+                    home_team=params.get('home_team', ''),
+                    away_team=params.get('away_team', ''),
+                    home_goals=params.get('home_goals', 0),
+                    away_goals=params.get('away_goals', 0)
+                )
+
+            elif intent == 'add_goal':
+                result = self.matches_service.add_goal(
+                    player_name=params.get('player', ''),
+                    club_name=params.get('club', ''),
+                    minute=params.get('minute', 0)
+                )
+
+            elif intent == 'add_card':
+                result = self.matches_service.add_card(
+                    player_name=params.get('player', ''),
+                    club_name=params.get('club', ''),
+                    card_type=params.get('card_type', ''),
+                    minute=params.get('minute', 0)
+                )
+            elif intent == 'add_card_simple':
+                result = self.matches_service.add_card_simple(
+                    player_name=params.get('player', ''),
+                    card_type=params.get('card_type', ''),
+                    minute=params.get('minute', 0)
+                )
+
+            elif intent == 'show_events':
+                match_id = params.get('match_id', None)
+                if match_id:
+                    result = self.matches_service.show_events(match_id=int(match_id))
+                else:
+                    result = self.matches_service.show_events()
             # ============================================================
             # НЕПОЗНАТА КОМАНДА
             # ============================================================
@@ -223,7 +276,27 @@ class Router:
 │ • покажи програма [ЛИГА] [СЕЗОН]        - показва програмата                 │
 │   Пример: покажи програма Първа лига 2025/2026                               │
 └─────────────────────────────────────────────────────────────────────────────┘
-
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ⚽ МАЧОВЕ (ЕТАП 6 - НОВО)                                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • покажи кръг [N] [ЛИГА] [СЕЗОН] - показва мачовете за кръг                 │
+│   Пример: покажи кръг 3 Първа лига 2025/2026                                │
+│                                                                              │
+│ • избери мач [ID] - избира мач за последващи операции                       │
+│   Пример: избери мач 12                                                     │
+│                                                                              │
+│ • резултат [ДОМАКИН]-[ГОСТ] [X]:[Y] запиши - записва резултат               │
+│   Пример: резултат Левски-ЦСКА 3:0 запиши                                   │
+│                                                                              │
+│ • гол [ИГРАЧ] [КЛУБ] [МИНУТА] минута - добавя гол                           │
+│   Пример: гол Иван Петров Левски 23 минута                                  │
+│                                                                              │
+│ • картон [ИГРАЧ] [КЛУБ] [Y/R] [МИНУТА] - добавя картон                      │
+│   Пример: картон Иван Петров Левски Y 55                                    │
+│                                                                              │
+│ • покажи събития [ID] - показва голове и картони за мач                     │
+│   Пример: покажи събития 12                                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ ❓ ДРУГИ                                                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
