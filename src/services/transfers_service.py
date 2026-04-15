@@ -4,7 +4,7 @@ TRANSFERS SERVICE - ЕТАП 4
 
 import sqlite3
 from pathlib import Path
-from datetime import datetime
+from database.db import execute_query, execute_transaction
 
 DB_PATH = Path(__file__).parent.parent.parent / "clubs.db"
 
