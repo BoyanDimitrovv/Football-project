@@ -32,23 +32,20 @@ class ClubsService:
 
     @staticmethod
     def find_club_by_name(club_name):
-        """Намира клуб по име - без значение на малки/главни букви"""
+        """Намира клуб по име (без значение на малки/главни букви)"""
         if not club_name:
             return None
 
-        # Търсим по точно име (без значение на малки/главни)
-        club = execute_query(
-            "SELECT * FROM clubs WHERE LOWER(name) = LOWER(?)",
-            (club_name,),
-            fetch_one=True
-        )
+        # Взимаме всички клубове и търсим ръчно (най-сигурно)
+        all_clubs = execute_query("SELECT * FROM clubs", fetch_all=True)
+        search_name = club_name.strip().lower()
 
-        # Ако не намери, търсим с частично съвпадение
-        if not club:
-            club = execute_query(
-                "SELECT * FROM clubs WHERE LOWER(name) LIKE LOWER(?)",
-                (f"%{club_name}%",),
-                fetch_one=True
-            )
+        for club in all_clubs:
+            if club['name'].lower() == search_name:
+                return club
 
-        return club
+        for club in all_clubs:
+            if search_name in club['name'].lower():
+                return club
+
+        return None
