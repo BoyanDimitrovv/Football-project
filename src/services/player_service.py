@@ -3,6 +3,8 @@ import logging
 import re
 from datetime import datetime
 from database.db import execute_query
+
+
 class PlayersService:
     
     # Валидни позиции
@@ -88,17 +90,26 @@ class PlayersService:
         except Exception as e:
             logging.error(f"Грешка при добавяне на играч: {e}")
             return f"❌ Грешка: {str(e)}"
+
     @staticmethod
     def find_player_by_name(player_name):
-        """Намира играч по име (за трансфери)"""
-        return execute_query(
-            """SELECT p.*, c.name as club_name 
-               FROM players p 
-               LEFT JOIN clubs c ON p.club_id = c.id 
-               WHERE p.full_name LIKE ?""",
-            (f"%{player_name}%",),
-            fetch_one=True
-        )
+        """Намира играч по име (без значение на малки/главни букви)"""
+        if not player_name:
+            return None
+
+        # Взимаме всички играчи и търсим ръчно
+        all_players = execute_query("SELECT * FROM players", fetch_all=True)
+        search_name = player_name.strip().lower()
+
+        for player in all_players:
+            if player['full_name'].lower() == search_name:
+                return player
+
+        for player in all_players:
+            if search_name in player['full_name'].lower():
+                return player
+
+        return None
     @staticmethod
     def find_club_by_name(club_name):
         """Намира клуб по име (за трансфери)"""
