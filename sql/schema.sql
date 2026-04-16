@@ -105,3 +105,41 @@ CREATE INDEX IF NOT EXISTS idx_league_teams_league ON league_teams(league_id);
 CREATE INDEX IF NOT EXISTS idx_league_teams_club ON league_teams(club_id);
 CREATE INDEX IF NOT EXISTS idx_matches_league ON matches(league_id);
 CREATE INDEX IF NOT EXISTS idx_matches_round ON matches(round_no);
+
+-- ============================================================
+-- ЕТАП 6: ТАБЛИЦИ ЗА ГОЛОВЕ И КАРТОНИ
+-- ============================================================
+
+-- Таблица за голове
+CREATE TABLE IF NOT EXISTS goals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL,
+    club_id INTEGER NOT NULL,
+    minute INTEGER NOT NULL CHECK(minute BETWEEN 1 AND 120),
+    is_own_goal INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (match_id) REFERENCES matches (id) ON DELETE CASCADE,
+    FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE,
+    FOREIGN KEY (club_id) REFERENCES clubs (id) ON DELETE CASCADE
+);
+
+-- Таблица за картони
+CREATE TABLE IF NOT EXISTS cards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL,
+    club_id INTEGER NOT NULL,
+    minute INTEGER NOT NULL CHECK(minute BETWEEN 1 AND 120),
+    card_type TEXT NOT NULL CHECK(card_type IN ('Y', 'R')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (match_id) REFERENCES matches (id) ON DELETE CASCADE,
+    FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE,
+    FOREIGN KEY (club_id) REFERENCES clubs (id) ON DELETE CASCADE
+);
+
+-- Индекси
+CREATE INDEX IF NOT EXISTS idx_goals_match ON goals(match_id);
+CREATE INDEX IF NOT EXISTS idx_goals_player ON goals(player_id);
+CREATE INDEX IF NOT EXISTS idx_cards_match ON cards(match_id);
+CREATE INDEX IF NOT EXISTS idx_cards_player ON cards(player_id);
