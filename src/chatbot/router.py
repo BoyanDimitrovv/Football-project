@@ -1,8 +1,19 @@
-from services.clubs_service import ClubsService
-from services.players_service import PlayersService
-from services.transfers_service import TransfersService
-from services.leagues_service import LeaguesService
-from services.matches_service import MatchesService
+import sys
+from pathlib import Path
+
+# Добавяне на services папката към пътя
+services_path = Path(__file__).parent.parent / "services"
+sys.path.insert(0, str(services_path))
+
+# Добавяне на utils папката към пътя
+utils_path = Path(__file__).parent.parent / "utils"
+sys.path.insert(0, str(utils_path))
+
+from clubs_service import ClubsService
+from players_service import PlayersService
+from transfers_service import TransfersService
+from leagues_service import LeaguesService
+from matches_service import MatchesService
 from utils.logger import log_command
 
 
@@ -256,7 +267,7 @@ class Router:
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ 🏆 ЛИГИ (ЕТАП 5 - НОВО)                                                     │
+│ 🏆 ЛИГИ (ЕТАП 5 )                                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ • създай лига [ИМЕ] [СЕЗОН]              - създава нова лига                  │
 │   Пример: създай лига Първа лига 2025/2026                                   │
@@ -277,7 +288,7 @@ class Router:
 │   Пример: покажи програма Първа лига 2025/2026                               │
 └─────────────────────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ ⚽ МАЧОВЕ (ЕТАП 6 - НОВО)                                                   │
+│ ⚽ МАЧОВЕ (ЕТАП 6 )                                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │ • покажи кръг [N] [ЛИГА] [СЕЗОН] - показва мачовете за кръг                 │
 │   Пример: покажи кръг 3 Първа лига 2025/2026                                │
