@@ -12,7 +12,7 @@ sys.path.insert(0, str(src_path))
 from repositories.matches_repo import MatchesRepo
 from repositories.leagues_repo import LeaguesRepo
 from clubs_service import ClubsService
-from players_service import PlayersService
+from player_service import PlayersService
 from database.db import execute_transaction
 
 class MatchesService:
@@ -75,6 +75,7 @@ class MatchesService:
         return response
 
     @staticmethod
+
     def set_result(home_team, away_team, home_goals, away_goals, league_name=None, season=None, round_no=None):
         try:
             home_goals = int(home_goals)
@@ -98,7 +99,8 @@ class MatchesService:
             return f"❌ Не е намерен мач между {home_team} и {away_team}"
 
         MatchesRepo.update_match_result(match['id'], home_goals, away_goals)
-
+        from standings_service import update_standings_after_result
+        update_standings_after_result(match['id'])
         return f"✅ Записано: {home_team} - {away_team} {home_goals}:{away_goals} (мач #{match['id']})"
 
     @staticmethod
