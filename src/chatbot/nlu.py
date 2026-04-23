@@ -191,6 +191,25 @@ class NLU:
                     'minute': card_match_with_prepositions.group(4).strip()
                 }
             }
+        # ============================================================
+        # ЕТАП 7 - КЛАСИРАНЕ
+        # ============================================================
+
+        # Покажи класиране
+        standings_match = re.search(r'покажи класиране (.+?) (\d{4}/\d{4})', text_lower)
+        if standings_match:
+            return {
+                'intent': 'show_standings',
+                'params': {
+                    'league_name': standings_match.group(1).strip(),
+                    'season': standings_match.group(2).strip()
+                }
+            }
+
+        # Обнови класиране (препоръчително)
+        if text_lower == 'обнови класиране':
+            return {'intent': 'refresh_standings', 'params': {}}
+
         # ПОКАЖИ СЪБИТИЯ
         if 'покажи събития' in text_lower:
             show_events_match = re.search(r'покажи събития (\d+)', text_lower)
