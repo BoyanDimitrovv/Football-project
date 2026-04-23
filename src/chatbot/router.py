@@ -10,12 +10,12 @@ utils_path = Path(__file__).parent.parent / "utils"
 sys.path.insert(0, str(utils_path))
 
 from clubs_service import ClubsService
-from players_service import PlayersService
+from player_service import PlayersService
 from transfers_service import TransfersService
 from leagues_service import LeaguesService
 from matches_service import MatchesService
 from utils.logger import log_command
-
+from standings_service import StandingsService
 
 class Router:
     """Клас, който насочва командите към правилния service"""
@@ -27,6 +27,7 @@ class Router:
         self.transfers_service = TransfersService()
         self.leagues_service = LeaguesService()
         self.matches_service = MatchesService()
+        self.standings_service = StandingsService()
 
     def route(self, intent, params, raw_input):
         """
@@ -211,6 +212,27 @@ class Router:
                 else:
                     result = self.matches_service.show_events()
             # ============================================================
+            # ЕТАП 7 - КЛАСИРАНЕ
+            # ============================================================
+
+            elif intent == 'show_standings':
+                success, message, standings = self.standings_service.calculate_standings(
+                    league_name=params.get('league_name', ''),
+                    season=params.get('season', '')
+                )
+                if success:
+                    result = self.standings_service.format_standings_table(
+                        standings,
+                        params.get('league_name', ''),
+                        params.get('season', '')
+                    )
+                else:
+                    result = message
+
+            elif intent == 'refresh_standings':
+                # Може да се използва за контекстна лига
+                result = "🔄 За да обновите класирането, използвайте 'покажи класиране [лига] [сезон]'"
+            # ============================================================
             # НЕПОЗНАТА КОМАНДА
             # ============================================================
 
@@ -307,6 +329,14 @@ class Router:
 │                                                                              │
 │ • покажи събития [ID] - показва голове и картони за мач                     │
 │   Пример: покажи събития 12                                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 📊 КЛАСИРАНЕ (ЕТАП 7 - НОВО)                                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ • покажи класиране [ЛИГА] [СЕЗОН] - показва таблица с класиране            │
+│   Пример: покажи класиране Първа лига 2025/2026                            │
+│                                                                              │
+│ • обнови класиране - преизчислява класирането (за избрана лига)             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ ❓ ДРУГИ                                                                    │
