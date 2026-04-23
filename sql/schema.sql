@@ -143,3 +143,23 @@ CREATE INDEX IF NOT EXISTS idx_goals_match ON goals(match_id);
 CREATE INDEX IF NOT EXISTS idx_goals_player ON goals(player_id);
 CREATE INDEX IF NOT EXISTS idx_cards_match ON cards(match_id);
 CREATE INDEX IF NOT EXISTS idx_cards_player ON cards(player_id);
+
+-- Таблица за мачове (актуализирана за Етап 7)
+CREATE TABLE IF NOT EXISTS matches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    league_id INTEGER NOT NULL,
+    round_no INTEGER NOT NULL,
+    home_club_id INTEGER NOT NULL,
+    away_club_id INTEGER NOT NULL,
+    match_date TEXT,
+    home_goals INTEGER DEFAULT 0,
+    away_goals INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'scheduled',  -- scheduled, played
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (league_id) REFERENCES leagues (id) ON DELETE CASCADE,
+    FOREIGN KEY (home_club_id) REFERENCES clubs (id) ON DELETE CASCADE,
+    FOREIGN KEY (away_club_id) REFERENCES clubs (id) ON DELETE CASCADE,
+    CHECK (home_club_id != away_club_id)
+);
+-- Актуализиране на matches таблицата
+--ALTER TABLE matches ADD COLUMN status TEXT DEFAULT 'scheduled';
