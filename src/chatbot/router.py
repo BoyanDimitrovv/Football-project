@@ -16,6 +16,7 @@ from leagues_service import LeaguesService
 from matches_service import MatchesService
 from utils.logger import log_command
 from standings_service import StandingsService
+from ai.ai_service import AIService
 
 class Router:
     """Клас, който насочва командите към правилния service"""
@@ -28,6 +29,7 @@ class Router:
         self.leagues_service = LeaguesService()
         self.matches_service = MatchesService()
         self.standings_service = StandingsService()
+        self.ai_service = AIService()
 
     def route(self, intent, params, raw_input):
         """
@@ -232,6 +234,23 @@ class Router:
             elif intent == 'refresh_standings':
                 # Може да се използва за контекстна лига
                 result = "🔄 За да обновите класирането, използвайте 'покажи класиране [лига] [сезон]'"
+
+            #ETAП 8
+            elif intent == 'predict_match':
+                prediction, error = self.ai_service.predict_match(
+                    team1_name=params.get('team1', ''),
+                    team2_name=params.get('team2', '')
+                )
+                if error:
+                    result = error
+                else:
+                    result = (f"🔮 **ПРОГНОЗА: {prediction['home_team']} vs {prediction['away_team']}**\n\n"
+                              f"🏠 **{prediction['home_team']}**: {prediction['home_win']}%\n"
+                              f"🤝 **Равен**: {prediction['draw']}%\n"
+                              f"🛫 **{prediction['away_team']}**: {prediction['away_win']}%\n\n"
+                              f"📊 **Анализ:**\n"
+                              f"   • Форма: {prediction['home_team']} {prediction['home_form']}% vs {prediction['away_team']} {prediction['away_form']}%\n"
+                              f"   • Класиране: {prediction['home_team']} #{prediction['home_standing']} vs {prediction['away_team']} #{prediction['away_standing']}")
             # ============================================================
             # НЕПОЗНАТА КОМАНДА
             # ============================================================
