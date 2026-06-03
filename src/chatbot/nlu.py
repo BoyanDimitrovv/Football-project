@@ -1,13 +1,28 @@
 """
-NLU (Natural Language Understanding) - ЕТАП 6
+NLU (Natural Language Understanding) - ЕТАП 1-8
+Разпознава командите на потребителя и извлича параметри
 """
 
 import re
 
 class NLU:
+    """Клас за разпознаване на команди и извличане на параметри"""
 
     def parse(self, text):
+        """
+        Разпознава intent и параметри от текста
+
+        Args:
+            text (str): Входният текст от потребителя
+
+        Returns:
+            dict: {'intent': 'име_на_intent', 'params': {...}}
+        """
         text_lower = text.lower().strip()
+
+        # ============================================================
+        # ОСНОВНИ КОМАНДИ
+        # ============================================================
 
         # ПОМОЩ
         if any(word in text_lower for word in ['помощ', 'help', 'команди']):
@@ -17,21 +32,39 @@ class NLU:
         if any(word in text_lower for word in ['изход', 'exit', 'край', 'quit']):
             return {'intent': 'exit', 'params': {}}
 
+        # ============================================================
+        # ЕТАП 2 - КЛУБОВЕ
+        # ============================================================
+
         # ДОБАВИ КЛУБ
         add_club_match = re.search(r'добави клуб (.+)', text_lower)
         if add_club_match:
-            return {'intent': 'add_club', 'params': {'club': add_club_match.group(1).strip()}}
+            return {
+                'intent': 'add_club',
+                'params': {'club': add_club_match.group(1).strip()}
+            }
 
         # ПОКАЖИ КЛУБОВЕ
         if any(phrase in text_lower for phrase in ['покажи клубове', 'клубове', 'всички клубове']):
             return {'intent': 'list_clubs', 'params': {}}
 
-        # ПОКАЖИ ИГРАЧИ
+        # ============================================================
+        # ЕТАП 3 - ИГРАЧИ
+        # ============================================================
+
+        # ПОКАЖИ ИГРАЧИ НА КЛУБ
         players_match = re.search(r'покажи играчи на (.+)', text_lower)
         if players_match:
-            return {'intent': 'list_players', 'params': {'club': players_match.group(1).strip()}}
+            return {
+                'intent': 'list_players',
+                'params': {'club': players_match.group(1).strip()}
+            }
 
-        # ТРАНСФЕРИ
+        # ============================================================
+        # ЕТАП 4 - ТРАНСФЕРИ
+        # ============================================================
+
+        # ТРАНСФЕР (с опционална сума)
         transfer_patterns = [
             r'трансфер (.+?) от (.+?) в (.+?) (\d{4}-\d{2}-\d{2}) сума (\d+(?:\.\d+)?)',
             r'трансфер (.+?) от (.+?) в (.+?) (\d{4}-\d{2}-\d{2})'
@@ -49,18 +82,30 @@ class NLU:
                 }
                 if len(groups) > 4 and groups[4]:
                     params['fee'] = groups[4].strip()
+
                 return {'intent': 'transfer_player', 'params': params}
 
-        # ПОКАЖИ ТРАНСФЕРИ
+        # ПОКАЖИ ТРАНСФЕРИ НА ИГРАЧ
         player_match = re.search(r'покажи трансфери на (.+)', text_lower)
         if player_match and 'клуб' not in text_lower:
-            return {'intent': 'show_transfers_player', 'params': {'player': player_match.group(1).strip()}}
+            return {
+                'intent': 'show_transfers_player',
+                'params': {'player': player_match.group(1).strip()}
+            }
 
+        # ПОКАЖИ ТРАНСФЕРИ НА КЛУБ
         club_match = re.search(r'покажи трансфери на клуб (.+)', text_lower)
         if club_match:
-            return {'intent': 'show_transfers_club', 'params': {'club': club_match.group(1).strip()}}
+            return {
+                'intent': 'show_transfers_club',
+                'params': {'club': club_match.group(1).strip()}
+            }
 
-        # ЛИГИ
+        # ============================================================
+        # ЕТАП 5 - ЛИГИ
+        # ============================================================
+
+        # СЪЗДАЙ ЛИГА
         create_league_match = re.search(r'създай лига (.+?) (\d{4}/\d{4})', text_lower)
         if create_league_match:
             return {
@@ -71,6 +116,7 @@ class NLU:
                 }
             }
 
+        # ДОБАВИ ОТБОР В ЛИГА
         add_team_match = re.search(r'добави отбор (.+?) в лига (.+?) (\d{4}/\d{4})', text_lower)
         if add_team_match:
             return {
@@ -82,6 +128,19 @@ class NLU:
                 }
             }
 
+        # ПРЕМАХНИ ОТБОР ОТ ЛИГА
+        remove_team_match = re.search(r'премахни отбор (.+?) от лига (.+?) (\d{4}/\d{4})', text_lower)
+        if remove_team_match:
+            return {
+                'intent': 'remove_team_from_league',
+                'params': {
+                    'club': remove_team_match.group(1).strip(),
+                    'league_name': remove_team_match.group(2).strip(),
+                    'season': remove_team_match.group(3).strip()
+                }
+            }
+
+        # ПОКАЖИ ОТБОРИ В ЛИГА
         show_teams_match = re.search(r'покажи отбори в лига (.+?) (\d{4}/\d{4})', text_lower)
         if show_teams_match:
             return {
@@ -92,6 +151,7 @@ class NLU:
                 }
             }
 
+        # ГЕНЕРИРАЙ ПРОГРАМА
         generate_fixture_match = re.search(r'генерирай програма (.+?) (\d{4}/\d{4})', text_lower)
         if generate_fixture_match:
             return {
@@ -102,6 +162,7 @@ class NLU:
                 }
             }
 
+        # ПОКАЖИ ПРОГРАМА
         show_fixture_match = re.search(r'покажи програма (.+?) (\d{4}/\d{4})', text_lower)
         if show_fixture_match:
             return {
@@ -112,7 +173,11 @@ class NLU:
                 }
             }
 
-        # МАЧОВЕ
+        # ============================================================
+        # ЕТАП 6 - МАЧОВЕ
+        # ============================================================
+
+        # ПОКАЖИ КРЪГ
         show_round_match = re.search(r'покажи кръг (\d+) (.+?) (\d{4}/\d{4})', text_lower)
         if show_round_match:
             return {
@@ -124,6 +189,7 @@ class NLU:
                 }
             }
 
+        # ИЗБЕРИ МАЧ
         select_match = re.search(r'избери мач (\d+)', text_lower)
         if select_match:
             return {
@@ -131,6 +197,7 @@ class NLU:
                 'params': {'match_id': select_match.group(1).strip()}
             }
 
+        # РЕЗУЛТАТ (с имена на отбори)
         result_match = re.search(r'резултат (.+?)-(.+?) (\d+):(\d+) запиши', text_lower)
         if result_match:
             return {
@@ -143,7 +210,7 @@ class NLU:
                 }
             }
 
-        # ГОЛ - формат: гол [ИГРАЧ] за [КЛУБ] в [МИНУТА] минута
+        # ГОЛ
         goal_match = re.search(r'гол (.+?) за (.+?) в (\d+) минута', text_lower)
         if goal_match:
             return {
@@ -155,8 +222,8 @@ class NLU:
                 }
             }
 
-        # КАРТОН - формат: картон [ИГРАЧ] [КЛУБ] [Y/R] [МИНУТА]
-        card_match = re.search(r'картон (.+?) (.+?) ([YR]) (\d+)', text_lower)
+        # КАРТОН
+        card_match = re.search(r'картон (.+?) за (.+?) ([YR]) в (\d+)', text_lower)
         if card_match:
             return {
                 'intent': 'add_card',
@@ -168,34 +235,21 @@ class NLU:
                 }
             }
 
-        # КАРТОН - опростен формат: картон [ИГРАЧ] [Y/R] [МИНУТА]
-        card_match_simple = re.search(r'картон (.+?) ([YR]) (\d+)', text_lower, re.IGNORECASE)
-        if card_match_simple:
-            return {
-                'intent': 'add_card_simple',
-                'params': {
-                    'player': card_match_simple.group(1).strip(),
-                    'card_type': card_match_simple.group(2).strip().upper(),
-                    'minute': card_match_simple.group(3).strip()
+        # ПОКАЖИ СЪБИТИЯ
+        if 'покажи събития' in text_lower:
+            show_events_match = re.search(r'покажи събития (\d+)', text_lower)
+            if show_events_match:
+                return {
+                    'intent': 'show_events',
+                    'params': {'match_id': show_events_match.group(1).strip()}
                 }
-            }
-        # КАРТОН - формат: картон [ИГРАЧ] за [КЛУБ] [Y/R] в [МИНУТА]
-        card_match_with_prepositions = re.search(r'картон (.+?) за (.+?) ([YR]) в (\d+)', text_lower, re.IGNORECASE)
-        if card_match_with_prepositions:
-            return {
-                'intent': 'add_card',
-                'params': {
-                    'player': card_match_with_prepositions.group(1).strip(),
-                    'club': card_match_with_prepositions.group(2).strip(),
-                    'card_type': card_match_with_prepositions.group(3).strip().upper(),
-                    'minute': card_match_with_prepositions.group(4).strip()
-                }
-            }
+            return {'intent': 'show_events', 'params': {}}
+
         # ============================================================
         # ЕТАП 7 - КЛАСИРАНЕ
         # ============================================================
 
-        # Покажи класиране
+        # ПОКАЖИ КЛАСИРАНЕ
         standings_match = re.search(r'покажи класиране (.+?) (\d{4}/\d{4})', text_lower)
         if standings_match:
             return {
@@ -206,18 +260,23 @@ class NLU:
                 }
             }
 
-        # Обнови класиране (препоръчително)
-        if text_lower == 'обнови класиране':
-            return {'intent': 'refresh_standings', 'params': {}}
+        # ============================================================
+        # ЕТАП 8 - AI ПРОГНОЗА
+        # ============================================================
 
-        # ПОКАЖИ СЪБИТИЯ
-        if 'покажи събития' in text_lower:
-            show_events_match = re.search(r'покажи събития (\d+)', text_lower)
-            if show_events_match:
-                return {
-                    'intent': 'show_events',
-                    'params': {'match_id': show_events_match.group(1).strip()}
+        # ПРОГНОЗА
+        predict_match = re.search(r'прогноза (.+?) срещу (.+)', text_lower)
+        if predict_match:
+            return {
+                'intent': 'predict_match',
+                'params': {
+                    'team1': predict_match.group(1).strip(),
+                    'team2': predict_match.group(2).strip()
                 }
-            return {'intent': 'show_events', 'params': {}}
+            }
+
+        # ============================================================
+        # НЕПОЗНАТА КОМАНДА
+        # ============================================================
 
         return {'intent': 'unknown', 'params': {}}
