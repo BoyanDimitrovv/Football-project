@@ -39,6 +39,76 @@
             "tag": "show_transfers_club",
             "patterns": ["покажи трансфери на клуб (.+)"],
             "responses": [""]
+        },
+        {
+            "tag": "create_league",
+            "patterns": ["създай лига (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "add_team_to_league",
+            "patterns": ["добави отбор (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "remove_team_from_league",
+            "patterns": ["премахни отбор (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "show_teams_in_league",
+            "patterns": ["покажи отбори в лига (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "generate_fixture",
+            "patterns": ["генерирай програма (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "show_fixture",
+            "patterns": ["покажи програма (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "show_round",
+            "patterns": ["покажи кръг (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "select_match",
+            "patterns": ["избери мач (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "set_result",
+            "patterns": ["резултат (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "add_goal",
+            "patterns": ["гол (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "add_card",
+            "patterns": ["картон (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "show_events",
+            "patterns": ["покажи събития", "покажи събития (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "show_standings",
+            "patterns": ["покажи класиране (.+)"],
+            "responses": [""]
+        },
+        {
+            "tag": "predict_match",
+            "patterns": ["прогноза (.+)"],
+            "responses": [""]
         }
     ]
 }
