@@ -1,28 +1,29 @@
+"""
+ROUTER - ЕТАП 1-8
+Маршрутизира командите към съответните services
+"""
+
 import sys
 from pathlib import Path
 
-# Добавяне на services папката към пътя
-services_path = Path(__file__).parent.parent / "services"
-sys.path.insert(0, str(services_path))
+# Добавяне на src към пътя
+src_path = Path(__file__).parent.parent
+sys.path.insert(0, str(src_path))
 
-# Добавяне на utils папката към пътя
-utils_path = Path(__file__).parent.parent / "utils"
-sys.path.insert(0, str(utils_path))
-
-from clubs_service import ClubsService
-from player_service import PlayersService
-from transfers_service import TransfersService
-from leagues_service import LeaguesService
-from matches_service import MatchesService
-from utils.logger import log_command
-from standings_service import StandingsService
+from services.clubs_service import ClubsService
+from services.players_service import PlayersService
+from services.transfers_service import TransfersService
+from services.leagues_service import LeaguesService
+from services.matches_service import MatchesService
+from services.standings_service import StandingsService
 from ai.ai_service import AIService
+from utils.logger import log_command
+from database.db import execute_query
+
 
 class Router:
-    """Клас, който насочва командите към правилния service"""
 
     def __init__(self):
-        """Инициализира всички services"""
         self.clubs_service = ClubsService()
         self.players_service = PlayersService()
         self.transfers_service = TransfersService()
@@ -32,39 +33,21 @@ class Router:
         self.ai_service = AIService()
 
     def route(self, intent, params, raw_input):
-        """
-        Насочва заявката към съответния service
-
-        Args:
-            intent (str): Разпознатото намерение
-            params (dict): Параметри извлечени от командата
-            raw_input (str): Оригиналното съобщение от потребителя
-
-        Returns:
-            str: Отговор от съответния service
-        """
-
         result = None
         status = "OK"
 
         try:
-            # ============================================================
-            # ПОМОЩ И ИЗХОД
-            # ============================================================
-
+            # ПОМОЩ
             if intent == 'help':
                 result = self._get_help()
 
+            # ИЗХОД
             elif intent == 'exit':
                 result = "Довиждане! 👋"
 
-            # ============================================================
-            # ЕТАП 2 - КЛУБОВЕ
-            # ============================================================
-
+            # КЛУБОВЕ
             elif intent == 'add_club':
-                club_name = params.get('club', '')
-                result = self.clubs_service.add_club(club_name)
+                result = self.clubs_service.add_club(params.get('club', ''))
 
             elif intent == 'list_clubs':
                 clubs = self.clubs_service.get_all_clubs()
@@ -76,14 +59,10 @@ class Router:
                         response += f"  🏆 {club['id']}. {club['name']}\n"
                     result = response
 
-            # ============================================================
-            # ЕТАП 3 - ИГРАЧИ
-            # ============================================================
-
+            # ИГРАЧИ
             elif intent == 'list_players':
                 club_name = params.get('club', '')
                 players, club = self.players_service.get_players_by_club(club_name)
-
                 if players is None:
                     result = club
                 elif not players:
@@ -91,16 +70,23 @@ class Router:
                 else:
                     response = f"📋 Играчи на {club}:\n"
                     emoji = {'GK': '🧤', 'DF': '🛡️', 'MF': '⚙️', 'FW': '⚽'}
-
                     for player in players:
                         response += (f"  {emoji[player['position']]} {player['number']}. "
                                      f"{player['full_name']} ({player['nationality']})\n")
                     result = response
 
-            # ============================================================
-            # ЕТАП 4 - ТРАНСФЕРИ
-            # ============================================================
+            # ДОБАВИ ИГРАЧ
+            elif intent == 'add_player':
+                result = self.players_service.add_player(
+                    club_name=params.get('club_name', ''),
+                    full_name=params.get('player_name', ''),
+                    birth_date="2000-01-01",
+                    nationality="България",
+                    position=params.get('position', ''),
+                    number=params.get('number', 0)
+                )
 
+            # ТРАНСФЕРИ
             elif intent == 'transfer_player':
                 result = self.transfers_service.transfer_player(
                     player_name=params.get('player', ''),
@@ -120,10 +106,7 @@ class Router:
                     club_name=params.get('club', '')
                 )
 
-            # ============================================================
-            # ЕТАП 5 - ЛИГИ
-            # ============================================================
-
+            # ЛИГИ
             elif intent == 'create_league':
                 result = self.leagues_service.create_league(
                     name=params.get('name', ''),
@@ -161,10 +144,8 @@ class Router:
                     league_name=params.get('league_name', ''),
                     season=params.get('season', '')
                 )
-            # ============================================================
-            # ЕТАП 6 - МАЧОВЕ
-            # ============================================================
 
+            # МАЧОВЕ
             elif intent == 'show_round':
                 result = self.matches_service.show_round(
                     round_no=int(params.get('round_no', 0)),
@@ -200,12 +181,6 @@ class Router:
                     card_type=params.get('card_type', ''),
                     minute=params.get('minute', 0)
                 )
-            elif intent == 'add_card_simple':
-                result = self.matches_service.add_card_simple(
-                    player_name=params.get('player', ''),
-                    card_type=params.get('card_type', ''),
-                    minute=params.get('minute', 0)
-                )
 
             elif intent == 'show_events':
                 match_id = params.get('match_id', None)
@@ -213,10 +188,8 @@ class Router:
                     result = self.matches_service.show_events(match_id=int(match_id))
                 else:
                     result = self.matches_service.show_events()
-            # ============================================================
-            # ЕТАП 7 - КЛАСИРАНЕ
-            # ============================================================
 
+            # КЛАСИРАНЕ
             elif intent == 'show_standings':
                 success, message, standings = self.standings_service.calculate_standings(
                     league_name=params.get('league_name', ''),
@@ -231,11 +204,7 @@ class Router:
                 else:
                     result = message
 
-            elif intent == 'refresh_standings':
-                # Може да се използва за контекстна лига
-                result = "🔄 За да обновите класирането, използвайте 'покажи класиране [лига] [сезон]'"
-
-            #ETAП 8
+            # AI ПРОГНОЗА
             elif intent == 'predict_match':
                 prediction, error = self.ai_service.predict_match(
                     team1_name=params.get('team1', ''),
@@ -249,123 +218,108 @@ class Router:
                               f"🤝 **Равен**: {prediction['draw']}%\n"
                               f"🛫 **{prediction['away_team']}**: {prediction['away_win']}%\n\n"
                               f"📊 **Анализ:**\n"
-                              f"   • Форма: {prediction['home_team']} {prediction['home_form']}% vs {prediction['away_team']} {prediction['away_form']}%\n"
-                              f"   • Класиране: {prediction['home_team']} #{prediction['home_standing']} vs {prediction['away_team']} #{prediction['away_standing']}")
-            # ============================================================
-            # НЕПОЗНАТА КОМАНДА
-            # ============================================================
+                              f"   • Форма: {prediction['home_team']} {prediction['home_form']}% vs {prediction['away_team']} {prediction['away_form']}%")
 
+            # НЕПОЗНАТА КОМАНДА - с директна обработка на картони
             else:
-                result = "❓ Не разбирам командата. Напишете 'помощ' за списък с команди."
+                # Проверка за картон
+                if raw_input.lower().startswith('картон'):
+                    parts = raw_input.lower().split()
+                    card_type = None
+                    minute = None
+                    player_name = ''
+                    for i, part in enumerate(parts):
+                        if part in ['y', 'r']:
+                            card_type = part.upper()
+                            if i + 1 < len(parts):
+                                minute = parts[i + 1]
+                            break
+                        elif i > 0 or (i == 0 and part == 'картон'):
+                            if part != 'картон':
+                                player_name += part + ' '
+                    player_name = player_name.strip()
+
+                    if card_type and minute:
+                        current_match = self.matches_service.get_current_match()
+                        if current_match:
+                            all_players = execute_query("SELECT * FROM players", fetch_all=True)
+                            found = False
+                            for p in all_players:
+                                if player_name.lower() in p['full_name'].lower():
+                                    club_id = p['club_id']
+                                    if club_id == current_match['home_club_id']:
+                                        club_name = current_match['home_club_name']
+                                    elif club_id == current_match['away_club_id']:
+                                        club_name = current_match['away_club_name']
+                                    else:
+                                        club_name = None
+
+                                    if club_name:
+                                        result = self.matches_service.add_card(
+                                            player_name=player_name,
+                                            club_name=club_name,
+                                            card_type=card_type,
+                                            minute=minute
+                                        )
+                                        found = True
+                                    break
+                            if not found:
+                                result = f"❌ Играч '{player_name}' не е намерен или не участва в мача"
+                        else:
+                            result = "❌ Няма избран мач. Използвай 'избери мач <ID>'"
+                    else:
+                        result = "❌ Невалиден формат. Използвайте: картон [ИГРАЧ] [Y/R] [МИНУТА]"
+                else:
+                    result = "❓ Не разбирам командата. Напишете 'помощ' за списък с команди."
 
         except Exception as e:
             status = "ERROR"
             result = f"❌ Грешка: {str(e)}"
 
-        # Логване на командата
         log_command(raw_input, intent, params, result, status)
-
         return result
 
     def _get_help(self):
-        """Връща помощно съобщение с всички команди"""
         return """
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                         🏆 НАЛИЧНИ КОМАНДИ 🏆                                 ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+🏆 НАЛИЧНИ КОМАНДИ:
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 🏁 КЛУБОВЕ (ЕТАП 2)                                                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ • добави клуб [име]                    - добавя нов клуб                     │
-│   Пример: добави клуб Левски София                                          │
-│                                                                              │
-│ • покажи клубове                        - списък на всички клубове           │
-│   Пример: покажи клубове                                                     │
-└─────────────────────────────────────────────────────────────────────────────┘
+🏁 КЛУБОВЕ:
+• добави клуб [име]
+• покажи клубове
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ ⚽ ИГРАЧИ (ЕТАП 3)                                                           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ • покажи играчи на [КЛУБ]               - списък на играчите в клуб          │
-│   Пример: покажи играчи на Левски София                                      │
-└─────────────────────────────────────────────────────────────────────────────┘
+⚽ ИГРАЧИ:
+• покажи играчи на [КЛУБ]
+• добави играч [ИМЕ] в [КЛУБ] позиция [GK/DF/MF/FW] номер [1-99]
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 🔄 ТРАНСФЕРИ (ЕТАП 4)                                                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ • трансфер [ИГРАЧ] от [ОТ] в [КЪМ] [ДАТА]                                   │
-│   Пример: трансфер Пламен Андреев от Левски София в ЦСКА София 2026-03-10    │
-│                                                                              │
-│ • трансфер [ИГРАЧ] от [ОТ] в [КЪМ] [ДАТА] сума [ЧИСЛО]                       │
-│   Пример: трансфер Пламен Андреев от ЦСКА София в Лудогорец 2026-03-15 сума 500000 │
-│                                                                              │
-│ • покажи трансфери на [ИГРАЧ]           - история на трансферите на играч    │
-│   Пример: покажи трансфери на Пламен Андреев                                 │
-│                                                                              │
-│ • покажи трансфери на клуб [КЛУБ]       - входящи трансфери в клуб           │
-│   Пример: покажи трансфери на клуб Лудогорец                                 │
-└─────────────────────────────────────────────────────────────────────────────┘
+🔄 ТРАНСФЕРИ:
+• трансфер [ИГРАЧ] от [ОТ] в [КЪМ] [ДАТА]
+• трансфер [ИГРАЧ] от [ОТ] в [КЪМ] [ДАТА] сума [ЧИСЛО]
+• покажи трансфери на [ИГРАЧ]
+• покажи трансфери на клуб [КЛУБ]
 
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 🏆 ЛИГИ (ЕТАП 5 )                                                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ • създай лига [ИМЕ] [СЕЗОН]              - създава нова лига                  │
-│   Пример: създай лига Първа лига 2025/2026                                   │
-│                                                                              │
-│ • добави отбор [КЛУБ] в лига [ЛИГА] [СЕЗОН] - добавя отбор към лига          │
-│   Пример: добави отбор Левски София в лига Първа лига 2025/2026              │
-│                                                                              │
-│ • премахни отбор [КЛУБ] от лига [ЛИГА] [СЕЗОН] - премахва отбор от лига      │
-│   Пример: премахни отбор Левски София от лига Първа лига 2025/2026           │
-│                                                                              │
-│ • покажи отбори в лига [ЛИГА] [СЕЗОН]   - списък на отборите в лига           │
-│   Пример: покажи отбори в лига Първа лига 2025/2026                          │
-│                                                                              │
-│ • генерирай програма [ЛИГА] [СЕЗОН]     - създава програма (round-robin)      │
-│   Пример: генерирай програма Първа лига 2025/2026                            │
-│                                                                              │
-│ • покажи програма [ЛИГА] [СЕЗОН]        - показва програмата                 │
-│   Пример: покажи програма Първа лига 2025/2026                               │
-└─────────────────────────────────────────────────────────────────────────────┘
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ ⚽ МАЧОВЕ (ЕТАП 6 )                                                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ • покажи кръг [N] [ЛИГА] [СЕЗОН] - показва мачовете за кръг                 │
-│   Пример: покажи кръг 3 Първа лига 2025/2026                                │
-│                                                                              │
-│ • избери мач [ID] - избира мач за последващи операции                       │
-│   Пример: избери мач 12                                                     │
-│                                                                              │
-│ • резултат [ДОМАКИН]-[ГОСТ] [X]:[Y] запиши - записва резултат               │
-│   Пример: резултат Левски-ЦСКА 3:0 запиши                                   │
-│                                                                              │
-│ • гол [ИГРАЧ] [КЛУБ] [МИНУТА] минута - добавя гол                           │
-│   Пример: гол Иван Петров Левски 23 минута                                  │
-│                                                                              │
-│ • картон [ИГРАЧ] [КЛУБ] [Y/R] [МИНУТА] - добавя картон                      │
-│   Пример: картон Иван Петров Левски Y 55                                    │
-│                                                                              │
-│ • покажи събития [ID] - показва голове и картони за мач                     │
-│   Пример: покажи събития 12                                                 │
-└─────────────────────────────────────────────────────────────────────────────┘
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 📊 КЛАСИРАНЕ (ЕТАП 7 - НОВО)                                               │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ • покажи класиране [ЛИГА] [СЕЗОН] - показва таблица с класиране            │
-│   Пример: покажи класиране Първа лига 2025/2026                            │
-│                                                                              │
-│ • обнови класиране - преизчислява класирането (за избрана лига)             │
-└─────────────────────────────────────────────────────────────────────────────┘
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ ❓ ДРУГИ                                                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│ • помощ                                 - показва това меню                 │
-│ • изход                                 - излиза от програмата              │
-└─────────────────────────────────────────────────────────────────────────────┘
+🏆 ЛИГИ:
+• създай лига [ИМЕ] [СЕЗОН]
+• добави отбор [КЛУБ] в лига [ЛИГА] [СЕЗОН]
+• премахни отбор [КЛУБ] от лига [ЛИГА] [СЕЗОН]
+• покажи отбори в лига [ЛИГА] [СЕЗОН]
+• генерирай програма [ЛИГА] [СЕЗОН]
+• покажи програма [ЛИГА] [СЕЗОН]
 
-╔══════════════════════════════════════════════════════════════════════════════╗
-║  📌 ЗА ДА РАБОТЯТ КОМАНДИТЕ, ПЪРВО ПУСНЕТЕ:                                 ║
-║     python src/seed_data.py                                                  ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+⚽ МАЧОВЕ:
+• покажи кръг [N] [ЛИГА] [СЕЗОН]
+• избери мач [ID]
+• резултат [ДОМАКИН]-[ГОСТ] [X]:[Y] запиши
+• гол [ИГРАЧ] за [КЛУБ] в [МИНУТА] минута
+• картон [ИГРАЧ] [Y/R] [МИНУТА]
+• покажи събития [ID]
+
+📊 КЛАСИРАНЕ:
+• покажи класиране [ЛИГА] [СЕЗОН]
+
+🔮 AI ПРОГНОЗА:
+• прогноза [ОТБОР1] срещу [ОТБОР2]
+
+❓ ДРУГИ:
+• помощ
+• изход
 """
