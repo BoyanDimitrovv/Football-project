@@ -59,7 +59,18 @@ class NLU:
                 'intent': 'list_players',
                 'params': {'club': players_match.group(1).strip()}
             }
-
+        # ДОБАВИ ИГРАЧ
+        add_player_match = re.search(r'добави играч (.+?) в (.+?) позиция (.+?) номер (\d+)', text_lower)
+        if add_player_match:
+            return {
+                'intent': 'add_player',
+                'params': {
+                    'player_name': add_player_match.group(1).strip(),
+                    'club_name': add_player_match.group(2).strip(),
+                    'position': add_player_match.group(3).strip(),
+                    'number': add_player_match.group(4).strip()
+                }
+            }
         # ============================================================
         # ЕТАП 4 - ТРАНСФЕРИ
         # ============================================================
