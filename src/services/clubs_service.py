@@ -36,16 +36,11 @@ class ClubsService:
         if not club_name:
             return None
 
-        # Взимаме всички клубове и търсим ръчно (най-сигурно)
+        # Взимаме всички клубове и търсим ръчно
         all_clubs = execute_query("SELECT * FROM clubs", fetch_all=True)
-        search_name = club_name.strip().lower()
-
         for club in all_clubs:
-            if club['name'].lower() == search_name:
-                return club
-
-        for club in all_clubs:
-            if search_name in club['name'].lower():
+            if club_name.lower() in club['name'].lower():
                 return club
 
         return None
+
