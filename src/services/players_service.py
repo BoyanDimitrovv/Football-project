@@ -4,7 +4,6 @@ import re
 from datetime import datetime
 from database.db import execute_query
 
-
 class PlayersService:
     
     # Валидни позиции
@@ -57,6 +56,8 @@ class PlayersService:
     @staticmethod
     def add_player(club_name, full_name, birth_date, nationality, position, number, status="active"):
         """Добавя нов играч с всички параметри (за инициализация)"""
+        # Превръщаме първата буква на името на клуба в главна
+        club_name = club_name.title()
         try:
             # Намиране на клуб
             club = execute_query(
@@ -126,7 +127,7 @@ class PlayersService:
         """Връща всички играчи в даден клуб"""
         try:
             # Използваме ClubsService за търсене на клуб (с малки/главни букви)
-            from club_service import ClubsService
+            from clubs_service import ClubsService
             club = ClubsService.find_club_by_name(club_name)
 
             if not club:
