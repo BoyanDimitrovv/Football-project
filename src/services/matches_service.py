@@ -5,15 +5,17 @@ MATCHES SERVICE - ЕТАП 6
 import sys
 from pathlib import Path
 
-# Добавяне на src към пътя
+# Добавяне на src и services към пътя
 src_path = Path(__file__).parent.parent
 sys.path.insert(0, str(src_path))
+services_path = Path(__file__).parent
+sys.path.insert(0, str(services_path))
 
 from repositories.matches_repo import MatchesRepo
 from repositories.leagues_repo import LeaguesRepo
 from clubs_service import ClubsService
-from player_service import PlayersService
-from database.db import execute_transaction
+from players_service import PlayersService
+from database.db import execute_query
 
 class MatchesService:
 
