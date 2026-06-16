@@ -67,7 +67,7 @@ class MatchesService:
             match_id = m['id']
 
             # Проверка дали мачът има резултат
-            if m['home_goals'] is not None and m['home_goals'] != 0:
+            if m['home_goals'] is not None:
                 result = f"{m['home_goals']}:{m['away_goals']}"
             else:
                 result = "неизигран"

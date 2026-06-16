@@ -1,6 +1,6 @@
 # src/init_data.py
-from services.club_service import ClubsService  
-from services.player_service import PlayersService
+from services.clubs_service import ClubsService
+from services.players_service import PlayersService
 import logging
 
 def init_sample_data():
@@ -31,7 +31,7 @@ def init_sample_data():
     ]
     
     for player in levski_players:
-        result = PlayersService.add_player_full(
+        result = PlayersService.add_player(
             "Левски София", 
             player[0], player[1], player[2], player[3], player[4], player[5]
         )
@@ -47,7 +47,7 @@ def init_sample_data():
     ]
     
     for player in cska_players:
-        result = PlayersService.add_player_full(
+        result = PlayersService.add_player(
             "ЦСКА София", 
             player[0], player[1], player[2], player[3], player[4], player[5]
         )
@@ -63,7 +63,7 @@ def init_sample_data():
     ]
     
     for player in ludogorets_players:
-        result = PlayersService.add_player_full(
+        result = PlayersService.add_player(
             "Лудогорец Разград", 
             player[0], player[1], player[2], player[3], player[4], player[5]
         )
@@ -78,7 +78,7 @@ def init_sample_data():
     ]
     
     for player in botev_players:
-        result = PlayersService.add_player_full(
+        result = PlayersService.add_player(
             "Ботев Пловдив", 
             player[0], player[1], player[2], player[3], player[4], player[5]
         )
@@ -93,7 +93,7 @@ def init_sample_data():
     ]
     
     for player in cherno_players:
-        result = PlayersService.add_player_full(
+        result = PlayersService.add_player(
             "Черно море Варна", 
             player[0], player[1], player[2], player[3], player[4], player[5]
         )

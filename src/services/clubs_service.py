@@ -12,7 +12,7 @@ class ClubsService:
         try:
             name = name.strip()
             existing = execute_query(
-                "SELECT id FROM clubs WHERE name = ?",
+                "SELECT id FROM clubs WHERE LOWER(name) = LOWER(?)",
                 (name,),
                 fetch_one=True
             )

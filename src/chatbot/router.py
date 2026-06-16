@@ -31,6 +31,9 @@ class Router:
         self.matches_service = MatchesService()
         self.standings_service = StandingsService()
         self.ai_service = AIService()
+        self.selected_club = None
+        self.selected_league_name = None
+        self.selected_league_season = None
 
     def route(self, intent, params, raw_input):
         result = None
@@ -88,11 +91,13 @@ class Router:
 
             # ТРАНСФЕРИ
             elif intent == 'transfer_player':
+                from datetime import date
+                date_str = params.get('date', '') or date.today().isoformat()
                 result = self.transfers_service.transfer_player(
                     player_name=params.get('player', ''),
                     from_club_name=params.get('from_club', ''),
                     to_club_name=params.get('to_club', ''),
-                    date_str=params.get('date', ''),
+                    date_str=date_str,
                     fee_str=params.get('fee', None)
                 )
 
@@ -182,6 +187,13 @@ class Router:
                     minute=params.get('minute', 0)
                 )
 
+            elif intent == 'add_card_simple':
+                result = self.matches_service.add_card_simple(
+                    player_name=params.get('player', ''),
+                    card_type=params.get('card_type', ''),
+                    minute=params.get('minute', 0)
+                )
+
             elif intent == 'show_events':
                 match_id = params.get('match_id', None)
                 if match_id:
@@ -203,6 +215,91 @@ class Router:
                     )
                 else:
                     result = message
+
+            # ИЗБЕРИ КЛУБ (контекст)
+            elif intent == 'select_club':
+                from services.clubs_service import ClubsService
+                club = ClubsService.find_club_by_name(params.get('club', ''))
+                if not club:
+                    result = f"❌ Клуб '{params.get('club', '')}' не съществува"
+                else:
+                    self.selected_club = club
+                    result = f"✅ Избран клуб: {club['name']}"
+
+            elif intent == 'unselect_club':
+                if self.selected_club:
+                    club_name = self.selected_club['name']
+                    self.selected_club = None
+                    result = f"✅ Излязохте от клуб {club_name}"
+                else:
+                    result = "ℹ️ Няма избран клуб"
+
+            elif intent == 'list_players_selected':
+                if not self.selected_club:
+                    result = "ℹ️ Няма избран клуб. Използвайте 'избери клуб <ИМЕ>'"
+                else:
+                    club_name = self.selected_club['name']
+                    players, club = self.players_service.get_players_by_club(club_name)
+                    if players is None:
+                        result = club
+                    elif not players:
+                        result = f"📋 Няма играчи в {club}"
+                    else:
+                        response = f"📋 Играчи на {club}:\n"
+                        emoji = {'GK': '🧤', 'DF': '🛡️', 'MF': '⚙️', 'FW': '⚽'}
+                        for player in players:
+                            response += (f"  {emoji[player['position']]} {player['number']}. "
+                                         f"{player['full_name']} ({player['nationality']})\n")
+                        result = response
+
+            # ИЗБЕРИ ЛИГА (контекст)
+            elif intent == 'select_league':
+                league_name = params.get('league_name', '')
+                season = params.get('season', '')
+                from services.leagues_service import LeaguesService
+                valid, league_or_msg = LeaguesService.validate_league_exists(league_name, season)
+                if valid:
+                    self.selected_league_name = league_name
+                    self.selected_league_season = season
+                    result = f"✅ Избрана лига: {league_name} ({season})"
+                else:
+                    result = league_or_msg
+
+            elif intent == 'generate_fixture_selected':
+                if not self.selected_league_name:
+                    result = "ℹ️ Няма избрана лига. Използвайте 'избери лига <ИМЕ> <СЕЗОН>'"
+                else:
+                    result = self.leagues_service.generate_fixture(
+                        league_name=self.selected_league_name,
+                        season=self.selected_league_season
+                    )
+
+            elif intent == 'show_round_selected':
+                if not self.selected_league_name:
+                    result = "ℹ️ Няма избрана лига. Използвайте 'избери лига <ИМЕ> <СЕЗОН>'"
+                else:
+                    result = self.matches_service.show_round(
+                        round_no=int(params.get('round_no', 0)),
+                        league_name=self.selected_league_name,
+                        season=self.selected_league_season
+                    )
+
+            elif intent == 'show_standings_selected':
+                if not self.selected_league_name:
+                    result = "ℹ️ Няма избрана лига. Използвайте 'избери лига <ИМЕ> <СЕЗОН>'"
+                else:
+                    success, message, standings = self.standings_service.calculate_standings(
+                        league_name=self.selected_league_name,
+                        season=self.selected_league_season
+                    )
+                    if success:
+                        result = self.standings_service.format_standings_table(
+                            standings,
+                            self.selected_league_name,
+                            self.selected_league_season
+                        )
+                    else:
+                        result = message
 
             # AI ПРОГНОЗА
             elif intent == 'predict_match':
@@ -252,16 +349,15 @@ class Router:
                                     elif club_id == current_match['away_club_id']:
                                         club_name = current_match['away_club_name']
                                     else:
-                                        club_name = None
+                                        continue
 
-                                    if club_name:
-                                        result = self.matches_service.add_card(
-                                            player_name=player_name,
-                                            club_name=club_name,
-                                            card_type=card_type,
-                                            minute=minute
-                                        )
-                                        found = True
+                                    result = self.matches_service.add_card(
+                                        player_name=player_name,
+                                        club_name=club_name,
+                                        card_type=card_type,
+                                        minute=minute
+                                    )
+                                    found = True
                                     break
                             if not found:
                                 result = f"❌ Играч '{player_name}' не е намерен или не участва в мача"

@@ -23,7 +23,7 @@ class LeaguesRepo:
     def get_league_by_name_season(name, season):
         """Намира лига по име и сезон"""
         return execute_query(
-            "SELECT * FROM leagues WHERE name = ? AND season = ?",
+            "SELECT * FROM leagues WHERE LOWER(name) = LOWER(?) AND season = ?",
             (name, season),
             fetch_one=True
         )

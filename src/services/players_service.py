@@ -56,18 +56,20 @@ class PlayersService:
     @staticmethod
     def add_player(club_name, full_name, birth_date, nationality, position, number, status="active"):
         """Добавя нов играч с всички параметри (за инициализация)"""
-        # Превръщаме първата буква на името на клуба в главна
-        club_name = club_name.title()
         try:
-            # Намиране на клуб
-            club = execute_query(
-                "SELECT id FROM clubs WHERE name = ?", 
-                (club_name,), 
-                fetch_one=True
-            )
+            # Намиране на клуб (без значение на малки/главни букви)
+            from clubs_service import ClubsService
+            club = ClubsService.find_club_by_name(club_name)
             
             if not club:
                 return f"❌ Клуб '{club_name}' не съществува"
+
+            club_name = club['name']
+            
+            # Проверка за дублиращо се име
+            existing = PlayersService.find_player_by_name(full_name)
+            if existing:
+                return f"❌ Играч '{full_name}' вече съществува"
             
             # Валидации
             valid_number, number_msg = PlayersService.validate_number(number, club['id'])
@@ -111,6 +113,29 @@ class PlayersService:
                 return player
 
         return None
+
+    @staticmethod
+    def find_player_by_name_and_club(player_name, club_id):
+        """Намира играч по име и клуб (без значение на малки/главни букви)"""
+        if not player_name:
+            return None
+        if club_id:
+            players = execute_query(
+                "SELECT * FROM players WHERE club_id = ?",
+                (club_id,),
+                fetch_all=True
+            )
+        else:
+            players = execute_query("SELECT * FROM players", fetch_all=True)
+        search_name = player_name.strip().lower()
+        for player in players:
+            if player['full_name'].lower() == search_name:
+                return player
+        for player in players:
+            if search_name in player['full_name'].lower():
+                return player
+        return None
+
     @staticmethod
     def find_club_by_name(club_name):
         """Намира клуб по име (за трансфери)"""
@@ -181,28 +206,15 @@ class PlayersService:
                 return f"❌ {number_msg}"
             
             # Намиране на играча
+            player = None
             if club_name:
-                # Търсене по име на играч и клуб
-                club = execute_query(
-                    "SELECT id FROM clubs WHERE name = ?", 
-                    (club_name,), 
-                    fetch_one=True
-                )
+                from clubs_service import ClubsService
+                club = ClubsService.find_club_by_name(club_name)
                 if not club:
                     return f"❌ Клуб '{club_name}' не съществува"
-                
-                player = execute_query(
-                    "SELECT * FROM players WHERE full_name LIKE ? AND club_id = ?",
-                    (f"%{player_name}%", club['id']),
-                    fetch_one=True
-                )
+                player = PlayersService.find_player_by_name_and_club(player_name, club['id'])
             else:
-                # Търсене само по име (връща първия)
-                player = execute_query(
-                    "SELECT * FROM players WHERE full_name LIKE ?",
-                    (f"%{player_name}%",),
-                    fetch_one=True
-                )
+                player = PlayersService.find_player_by_name(player_name)
             
             if not player:
                 return f"❌ Играч '{player_name}' не е намерен"
@@ -233,26 +245,15 @@ class PlayersService:
                 return f"❌ Статусът трябва да е: {', '.join(PlayersService.VALID_STATUSES)}"
             
             # Намиране на играча
+            player = None
             if club_name:
-                club = execute_query(
-                    "SELECT id FROM clubs WHERE name = ?", 
-                    (club_name,), 
-                    fetch_one=True
-                )
+                from clubs_service import ClubsService
+                club = ClubsService.find_club_by_name(club_name)
                 if not club:
                     return f"❌ Клуб '{club_name}' не съществува"
-                
-                player = execute_query(
-                    "SELECT * FROM players WHERE full_name LIKE ? AND club_id = ?",
-                    (f"%{player_name}%", club['id']),
-                    fetch_one=True
-                )
+                player = PlayersService.find_player_by_name_and_club(player_name, club['id'])
             else:
-                player = execute_query(
-                    "SELECT * FROM players WHERE full_name LIKE ?",
-                    (f"%{player_name}%",),
-                    fetch_one=True
-                )
+                player = PlayersService.find_player_by_name(player_name)
             
             if not player:
                 return f"❌ Играч '{player_name}' не е намерен"
@@ -280,26 +281,15 @@ class PlayersService:
         """Изтрива играч"""
         try:
             # Намиране на играча
+            player = None
             if club_name:
-                club = execute_query(
-                    "SELECT id FROM clubs WHERE name = ?", 
-                    (club_name,), 
-                    fetch_one=True
-                )
+                from clubs_service import ClubsService
+                club = ClubsService.find_club_by_name(club_name)
                 if not club:
                     return f"❌ Клуб '{club_name}' не съществува"
-                
-                player = execute_query(
-                    "SELECT * FROM players WHERE full_name LIKE ? AND club_id = ?",
-                    (f"%{player_name}%", club['id']),
-                    fetch_one=True
-                )
+                player = PlayersService.find_player_by_name_and_club(player_name, club['id'])
             else:
-                player = execute_query(
-                    "SELECT * FROM players WHERE full_name LIKE ?",
-                    (f"%{player_name}%",),
-                    fetch_one=True
-                )
+                player = PlayersService.find_player_by_name(player_name)
             
             if not player:
                 return f"❌ Играч '{player_name}' не е намерен"
